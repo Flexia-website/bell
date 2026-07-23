@@ -1,1 +1,21 @@
-
+{% extends "base.html" %}
+{% block content %}
+<div class="products-container">
+    <h2 class="text-center mb-5" style="font-family: 'Playfair Display', serif; color: #880e4f;">Our Perfumes</h2>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4 col-sm-6">
+            <a href="{{ url_for('product_detail', id=product.id) }}" class="product-card"
+               style="background-image: url('{{ url_for('static', filename='uploads/' + product.image_filename) if product.image_filename else '' }}');">
+                <div class="card-content">
+                    <div class="product-title">{{ product.name }}</div>
+                    <div class="product-price" data-aos="fade-up-price">${{ "%.2f"|format(product.price) }}</div>
+                </div>
+            </a>
+        </div>
+        {% else %}
+        <p class="text-center">No products yet. Admin can add them.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
