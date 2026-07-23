@@ -1,1 +1,152 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap');
 
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+    padding: 0.5rem 2rem;
+}
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #d81b60 !important;
+    letter-spacing: 2px;
+}
+.navbar-brand img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+/* Product Grid */
+.products-container {
+    padding: 3rem 1rem;
+}
+.product-card {
+    height: 400px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: white;
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+}
+/* Dark gradient overlay for readability */
+.product-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%);
+    z-index: 1;
+}
+.card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+    z-index: 2;
+}
+.product-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.product-price {
+    background: rgba(216, 27, 96, 0.9); /* deep pink */
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 10px 20px rgba(216,27,96,0.3);
+}
+
+/* Scroll reveal animation (used with AOS) */
+[data-aos="fade-up-price"] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition-property: opacity, transform;
+}
+[data-aos="fade-up-price"].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Product Detail Page */
+.detail-container {
+    max-width: 900px;
+    margin: 3rem auto;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(25px);
+    border-radius: 30px;
+    padding: 3rem;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+.detail-image {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+}
+.detail-info {
+    flex: 1;
+}
+.detail-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: #880e4f;
+    margin-bottom: 1rem;
+}
+.detail-price {
+    font-size: 2rem;
+    color: #d81b60;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+.detail-description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #4a4a4a;
+}
+
+/* Admin panels */
+.admin-wrapper {
+    max-width: 1000px;
+    margin: 3rem auto;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    padding: 2rem;
+    border-radius: 25px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+.admin-wrapper h2, .admin-wrapper h3 {
+    font-family: 'Playfair Display', serif;
+    color: #880e4f;
+}
