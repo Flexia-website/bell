@@ -1,1 +1,18 @@
-
+{% extends "base.html" %}
+{% block content %}
+<div class="detail-container">
+    <div>
+        {% if product.image_filename %}
+        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" class="detail-image" alt="{{ product.name }}">
+        {% else %}
+        <div class="detail-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
+        {% endif %}
+    </div>
+    <div class="detail-info">
+        <h1 class="detail-name">{{ product.name }}</h1>
+        <p class="detail-price">${{ "%.2f"|format(product.price) }}</p>
+        <p class="detail-description">{{ product.description }}</p>
+        <button class="btn btn-lg" style="background: #d81b60; color: white; border-radius: 30px; padding: 0.8rem 2.5rem;">Add to Cart</button>
+    </div>
+</div>
+{% endblock %}
