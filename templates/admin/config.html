@@ -1,1 +1,20 @@
-
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-wrapper">
+    <h2>Site Configuration</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label>Site Name</label>
+            <input type="text" name="site_name" class="form-control" value="{{ current_site_name }}">
+        </div>
+        <div class="mb-3">
+            <label>Logo Image</label>
+            <input type="file" name="logo" class="form-control">
+            {% if current_logo %}
+            <small>Current: <img src="{{ url_for('static', filename='uploads/' + current_logo) }}" height="30"></small>
+            {% endif %}
+        </div>
+        <button class="btn btn-danger" style="background:#d81b60; border:none;">Save</button>
+    </form>
+</div>
+{% endblock %}
