@@ -1,18 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
+{% set imgs = product.all_images %}
 <div class="detail-container">
-    <div>
-        {% if product.image_filename %}
-        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" class="detail-image" alt="{{ product.name }}">
+    <div class="detail-gallery">
+        {% if imgs %}
+        <img id="mainImage" src="{{ url_for('static', filename='uploads/' + imgs[0]) }}" class="detail-image-main" alt="{{ product.name }}">
         {% else %}
-        <div class="detail-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
+        <div class="detail-image-main bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
+        {% endif %}
+        {% if imgs|length > 1 %}
+        <div class="detail-thumbs">
+            {% for img in imgs %}
+            <img src="{{ url_for('static', filename='uploads/' + img) }}"
+                 class="detail-thumb {% if loop.first %}active{% endif %}"
+                 onclick="document.getElementById('mainImage').src=this.src; document.querySelectorAll('.detail-thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active');">
+            {% endfor %}
+        </div>
         {% endif %}
     </div>
     <div class="detail-info">
         <h1 class="detail-name">{{ product.name }}</h1>
-        <p class="detail-price">${{ "%.2f"|format(product.price) }}</p>
+        <p class="detail-price">{{ product.price|naira }}</p>
         <p class="detail-description">{{ product.description }}</p>
-        <button class="btn btn-lg" style="background: #d81b60; color: white; border-radius: 30px; padding: 0.8rem 2.5rem;">Add to Cart</button>
+        <button class="btn btn-lg" style="background: var(--primary); color: white; border-radius: 30px; padding: 0.8rem 2.5rem; border:none;">Add to Cart</button>
     </div>
 </div>
 {% endblock %}

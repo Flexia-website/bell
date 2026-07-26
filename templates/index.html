@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="products-container">
-    <h2 class="text-center mb-5" style="font-family: 'Playfair Display', serif; color: #880e4f;">Our Perfumes</h2>
-    <div class="row">
+    <h2 class="section-title">Our Perfumes</h2>
+    <div class="product-grid">
         {% for product in products %}
-        <div class="col-md-4 col-sm-6">
-            <a href="{{ url_for('product_detail', id=product.id) }}" class="product-card"
-               style="background-image: url('{{ url_for('static', filename='uploads/' + product.image_filename) if product.image_filename else '' }}');">
-                <div class="card-content">
-                    <div class="product-title">{{ product.name }}</div>
-                    <div class="product-price" data-aos="fade-up-price">${{ "%.2f"|format(product.price) }}</div>
-                </div>
-            </a>
-        </div>
+        <a href="{{ url_for('product_detail', id=product.id) }}" class="product-card">
+            <div class="product-image" style="background-image: url('{{ url_for('static', filename='uploads/' + product.image_filename) if product.image_filename else '' }}');">
+                {% if product.all_images|length > 1 %}
+                <span class="multi-badge">{{ product.all_images|length }}</span>
+                {% endif %}
+            </div>
+            <div class="product-body">
+                <div class="product-title">{{ product.name }}</div>
+                <div class="product-price">{{ product.price|naira }}</div>
+            </div>
+        </a>
         {% else %}
         <p class="text-center">No products yet. Admin can add them.</p>
         {% endfor %}

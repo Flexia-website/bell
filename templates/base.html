@@ -7,6 +7,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --primary: {{ theme.primary }};
+            --primary-dark: {{ theme.primary_dark }};
+            --accent: {{ theme.accent }};
+            --bg-start: {{ theme.bg_start }};
+            --bg-end: {{ theme.bg_end }};
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
@@ -18,13 +27,11 @@
                 {% endif %}
                 {{ site_name }}
             </a>
-            <div class="d-flex">
+            <div class="d-flex align-items-center">
                 <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">Shop</a>
                 {% if session.get('admin') %}
                 <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary me-2">Admin</a>
                 <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-danger">Logout</a>
-                {% else %}
-                <a href="{{ url_for('admin_login') }}" class="btn btn-outline-secondary">Admin</a>
                 {% endif %}
             </div>
         </div>
@@ -43,6 +50,29 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
+
+    <footer class="site-footer mt-5">
+        <div class="container py-4">
+            <div class="row gy-3">
+                <div class="col-md-4">
+                    <div class="footer-brand">{{ site_name }}</div>
+                    {% if tagline is defined and tagline %}<p class="footer-tagline">{{ tagline }}</p>{% endif %}
+                </div>
+                <div class="col-md-4">
+                    {% if current_contact_phone is defined and current_contact_phone %}<div>{{ current_contact_phone }}</div>{% endif %}
+                    {% if current_contact_email is defined and current_contact_email %}<div>{{ current_contact_email }}</div>{% endif %}
+                    {% if current_address is defined and current_address %}<div>{{ current_address }}</div>{% endif %}
+                </div>
+                <div class="col-md-4 text-md-end">
+                    {% if current_whatsapp is defined and current_whatsapp %}<a href="https://wa.me/{{ current_whatsapp }}" class="footer-link me-3">WhatsApp</a>{% endif %}
+                    {% if current_instagram is defined and current_instagram %}<a href="{{ current_instagram }}" class="footer-link me-3">Instagram</a>{% endif %}
+                    {% if current_facebook is defined and current_facebook %}<a href="{{ current_facebook }}" class="footer-link">Facebook</a>{% endif %}
+                </div>
+            </div>
+            <hr>
+            <p class="text-center mb-0 small">&copy; {{ site_name }}. All rights reserved.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
