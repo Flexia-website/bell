@@ -18,6 +18,10 @@
                     <input type="text" name="tagline" class="form-control" value="{{ current_tagline }}" placeholder="e.g. Luxury Scents for Every Mood">
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label">Shop Heading</label>
+                    <input type="text" name="hero_title" class="form-control" value="{{ current_hero_title }}" placeholder="e.g. Our Perfumes">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Logo Image</label>
                     <input type="file" name="logo" class="form-control" accept="image/*">
                     {% if current_logo %}
