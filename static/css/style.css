@@ -44,9 +44,9 @@ body {
 .navbar-brand img {
     height: 28px;
     width: 28px;
-    object-fit: contain;
+    object-fit: cover;
     margin-right: 8px;
-    border-radius: 4px;
+    border-radius: 50%;
 }
 .navbar .btn {
     font-size: 0.78rem;
