@@ -1,20 +1,89 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="admin-wrapper">
-    <h2>Site Configuration</h2>
+    <h2>Site Settings</h2>
+    <p class="text-muted mb-4">Manage everything about how your storefront looks and how customers can reach you.</p>
+
     <form method="POST" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label>Site Name</label>
-            <input type="text" name="site_name" class="form-control" value="{{ current_site_name }}">
+
+        <div class="settings-section">
+            <h4>Store Identity</h4>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Site Name</label>
+                    <input type="text" name="site_name" class="form-control" value="{{ current_site_name }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Tagline</label>
+                    <input type="text" name="tagline" class="form-control" value="{{ current_tagline }}" placeholder="e.g. Luxury Scents for Every Mood">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Logo Image</label>
+                    <input type="file" name="logo" class="form-control" accept="image/*">
+                    {% if current_logo %}
+                    <small class="d-block mt-2">Current: <img src="{{ url_for('static', filename='uploads/' + current_logo) }}" height="36" style="border-radius:6px;"></small>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label>Logo Image</label>
-            <input type="file" name="logo" class="form-control">
-            {% if current_logo %}
-            <small>Current: <img src="{{ url_for('static', filename='uploads/' + current_logo) }}" height="30"></small>
-            {% endif %}
+
+        <div class="settings-section">
+            <h4>Contact Details</h4>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="contact_phone" class="form-control" value="{{ current_contact_phone }}" placeholder="e.g. 0803 000 0000">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="contact_email" class="form-control" value="{{ current_contact_email }}" placeholder="e.g. hello@yourstore.com">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">WhatsApp Number (with country code, no + or spaces)</label>
+                    <input type="text" name="whatsapp" class="form-control" value="{{ current_whatsapp }}" placeholder="e.g. 2348030000000">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Store Address</label>
+                    <input type="text" name="address" class="form-control" value="{{ current_address }}" placeholder="e.g. 12 Allen Avenue, Ikeja, Lagos">
+                </div>
+            </div>
         </div>
-        <button class="btn btn-danger" style="background:#d81b60; border:none;">Save</button>
+
+        <div class="settings-section">
+            <h4>Social Links</h4>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Instagram URL</label>
+                    <input type="text" name="instagram" class="form-control" value="{{ current_instagram }}" placeholder="https://instagram.com/yourstore">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Facebook URL</label>
+                    <input type="text" name="facebook" class="form-control" value="{{ current_facebook }}" placeholder="https://facebook.com/yourstore">
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h4>Footer Note</h4>
+            <textarea name="footer_note" class="form-control" rows="2" placeholder="Optional note shown in the footer">{{ current_footer_note }}</textarea>
+        </div>
+
+        <div class="settings-section">
+            <h4>🎨 Colour Theme</h4>
+            <p class="text-muted small">Pick the colour scheme your storefront and admin panel will use.</p>
+            <div class="theme-grid">
+                {% for key, t in themes.items() %}
+                <label class="theme-option {% if key == current_theme %}selected{% endif %}" style="border-color: {% if key == current_theme %}{{ t.primary }}{% else %}transparent{% endif %};">
+                    <input type="radio" name="theme" value="{{ key }}" {% if key == current_theme %}checked{% endif %}
+                        onchange="document.querySelectorAll('.theme-option').forEach(o=>o.style.borderColor='transparent'); this.closest('.theme-option').style.borderColor='{{ t.primary }}';">
+                    <div class="theme-swatch" style="background: linear-gradient(135deg, {{ t.bg_start }}, {{ t.primary }} 60%, {{ t.primary_dark }});"></div>
+                    <label>{{ t.label }}</label>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button class="btn btn-lg" style="background:var(--primary); color:white; border:none; border-radius: 30px; padding: 0.7rem 2.5rem;">Save Settings</button>
     </form>
 </div>
 {% endblock %}
