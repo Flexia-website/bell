@@ -51,39 +51,34 @@ body {
 
 /* Page container - premium narrower width */
 .container {
-    max-width: 1140px;
+    max-width: 1020px;
 }
 
 /* Product Grid */
 .products-container {
     padding: 2.5rem 0.5rem;
     flex: 1;
-    max-width: 1080px;
+    max-width: 780px;
     margin: 0 auto;
 }
 .section-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: var(--primary-dark);
     text-align: center;
     letter-spacing: 0.5px;
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
 }
 
+/* Fixed two-column grid at all breakpoints so items wrap into two rows */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.1rem;
 }
-@media (max-width: 992px) {
-    .product-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 700px) {
-    .product-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 460px) {
-    .product-grid { grid-template-columns: 1fr; }
+@media (max-width: 420px) {
+    .product-grid { gap: 0.75rem; }
 }
 
 .product-card {
@@ -101,11 +96,14 @@ body {
     box-shadow: 0 14px 28px rgba(0,0,0,0.14);
 }
 .product-image {
-    height: 160px;
+    height: 220px;
     background-size: cover;
     background-position: center;
     background-color: #e8e8e8;
     position: relative;
+}
+@media (max-width: 420px) {
+    .product-image { height: 170px; }
 }
 .multi-badge {
     position: absolute;
@@ -212,7 +210,7 @@ body {
 
 /* Admin panels */
 .admin-wrapper {
-    max-width: 820px;
+    max-width: 700px;
     margin: 2.5rem auto;
     background: rgba(255,255,255,0.85);
     backdrop-filter: blur(20px);
@@ -220,6 +218,24 @@ body {
     border-radius: 18px;
     box-shadow: 0 16px 32px rgba(0,0,0,0.08);
     font-size: 0.85rem;
+}
+@media (max-width: 576px) {
+    .admin-wrapper {
+        margin: 1.25rem auto;
+        padding: 1.1rem;
+        border-radius: 14px;
+    }
+}
+
+/* Keeps wide tables (e.g. product list) scrolling within the card instead of
+   pushing action buttons outside the container on small screens */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.table-scroll table {
+    min-width: 520px;
 }
 .admin-wrapper h2 {
     font-family: 'Playfair Display', serif;
