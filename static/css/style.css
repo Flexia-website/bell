@@ -7,6 +7,9 @@
     --accent: #f8bbd0;
     --bg-start: #fce4ec;
     --bg-end: #f8bbd0;
+    --text: #333333;
+    --text-muted: #666666;
+    --card-bg: rgba(255,255,255,0.9);
 }
 
 * { box-sizing: border-box; }
@@ -14,6 +17,7 @@
 body {
     font-family: 'Montserrat', sans-serif;
     font-size: 14px;
+    color: var(--text);
     background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
     min-height: 100vh;
     margin: 0;
@@ -23,7 +27,7 @@ body {
 
 /* Navbar */
 .navbar {
-    background: rgba(255,255,255,0.85);
+    background: var(--card-bg);
     backdrop-filter: blur(15px);
     box-shadow: 0 4px 30px rgba(0,0,0,0.05);
     padding: 0.4rem 1.5rem;
@@ -85,7 +89,7 @@ body {
     display: block;
     text-decoration: none;
     color: inherit;
-    background: rgba(255,255,255,0.9);
+    background: var(--card-bg);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -123,7 +127,7 @@ body {
     font-family: 'Playfair Display', serif;
     font-size: 0.9rem;
     font-weight: 600;
-    color: #333;
+    color: var(--text);
     margin-bottom: 0.3rem;
     white-space: nowrap;
     overflow: hidden;
@@ -140,7 +144,7 @@ body {
 .detail-container {
     max-width: 780px;
     margin: 2.5rem auto;
-    background: rgba(255,255,255,0.9);
+    background: var(--card-bg);
     backdrop-filter: blur(25px);
     border-radius: 18px;
     padding: 2rem;
@@ -201,23 +205,64 @@ body {
 .detail-description {
     font-size: 0.85rem;
     line-height: 1.7;
-    color: #555;
+    color: var(--text-muted);
 }
 .detail-info .btn {
     font-size: 0.8rem;
     padding: 0.55rem 1.8rem !important;
+}
+.add-to-cart-btn {
+    background: var(--primary);
+    color: white;
+    border-radius: 30px;
+    border: none;
+}
+.add-to-cart-btn:hover {
+    background: var(--primary-dark);
+    color: white;
+}
+
+/* Order form on product page */
+.order-form {
+    background: rgba(0,0,0,0.03);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+}
+.order-form .form-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+.order-form .form-control {
+    font-size: 0.82rem;
+}
+.place-order-btn {
+    background: var(--primary-dark);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 0.5rem 1.6rem;
+    font-size: 0.8rem;
+}
+.place-order-btn:hover {
+    background: var(--primary);
+    color: white;
 }
 
 /* Admin panels */
 .admin-wrapper {
     max-width: 700px;
     margin: 2.5rem auto;
-    background: rgba(255,255,255,0.85);
+    background: var(--card-bg);
     backdrop-filter: blur(20px);
     padding: 1.75rem;
     border-radius: 18px;
     box-shadow: 0 16px 32px rgba(0,0,0,0.08);
     font-size: 0.85rem;
+    color: var(--text);
+}
+.admin-wrapper-wide {
+    max-width: 980px;
 }
 @media (max-width: 576px) {
     .admin-wrapper {
@@ -227,8 +272,8 @@ body {
     }
 }
 
-/* Keeps wide tables (e.g. product list) scrolling within the card instead of
-   pushing action buttons outside the container on small screens */
+/* Keeps wide tables (e.g. product list, orders) scrolling within the card
+   instead of pushing action buttons outside the container on small screens */
 .table-scroll {
     width: 100%;
     overflow-x: auto;
@@ -250,10 +295,11 @@ body {
 .admin-wrapper .form-label {
     font-size: 0.78rem;
     font-weight: 500;
-    color: #555;
+    color: var(--text-muted);
 }
 .admin-wrapper .form-control,
-.admin-wrapper .btn {
+.admin-wrapper .btn,
+.admin-wrapper .form-select {
     font-size: 0.82rem;
 }
 .settings-section {
@@ -261,7 +307,7 @@ body {
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
     margin-bottom: 1.1rem;
-    background: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.5);
 }
 .settings-section h4 {
     font-family: 'Playfair Display', serif;
@@ -301,6 +347,7 @@ body {
     padding: 0.35rem;
     font-size: 0.68rem;
     background: white;
+    color: #333;
     cursor: pointer;
 }
 .theme-option input {
@@ -358,11 +405,35 @@ body {
     text-decoration: none;
 }
 
+/* Orders admin table */
+.order-item-line {
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+.status-select {
+    width: auto;
+    display: inline-block;
+}
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.2px;
+}
+.status-pending { background: #fff3cd; color: #8a6414; }
+.status-confirmed { background: #cfe2ff; color: #084298; }
+.status-shipped { background: #d0f0e0; color: #0b6e3d; }
+.status-completed { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #842029; }
+
 /* Footer */
 .site-footer {
-    background: rgba(255,255,255,0.85);
+    background: var(--card-bg);
     backdrop-filter: blur(15px);
-    color: #555;
+    color: var(--text-muted);
     font-size: 0.78rem;
 }
 .footer-brand {
@@ -372,7 +443,7 @@ body {
     font-weight: 700;
 }
 .footer-tagline {
-    color: #888;
+    color: var(--text-muted);
     margin-top: 0.25rem;
     font-size: 0.75rem;
 }
@@ -390,5 +461,5 @@ body {
 }
 .site-footer .small {
     font-size: 0.7rem;
-    color: #999;
+    color: var(--text-muted);
 }
