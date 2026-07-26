@@ -22,7 +22,33 @@
         <h1 class="detail-name">{{ product.name }}</h1>
         <p class="detail-price">{{ product.price|naira }}</p>
         <p class="detail-description">{{ product.description }}</p>
-        <button class="btn btn-lg" style="background: var(--primary); color: white; border-radius: 30px; padding: 0.8rem 2.5rem; border:none;">Add to Cart</button>
+
+        {% if not order_placed %}
+        <button type="button" class="btn btn-lg add-to-cart-btn" data-bs-toggle="collapse" data-bs-target="#orderForm">
+            Add to Cart
+        </button>
+        <div class="collapse mt-3" id="orderForm">
+            <form method="POST" action="{{ url_for('place_order', id=product.id) }}" class="order-form">
+                <div class="mb-2">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" name="quantity" value="1" min="1" class="form-control" style="max-width:100px;">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" name="customer_name" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="customer_phone" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Delivery Address (optional)</label>
+                    <textarea name="customer_address" class="form-control" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn place-order-btn">Place Order</button>
+            </form>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

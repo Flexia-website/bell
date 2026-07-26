@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="products-container">
-    <h2 class="section-title">Our Perfumes</h2>
+    <h2 class="section-title">{{ hero_title }}</h2>
     <div class="product-grid">
         {% for product in products %}
         <a href="{{ url_for('product_detail', id=product.id) }}" class="product-card">
