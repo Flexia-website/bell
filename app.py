@@ -57,32 +57,58 @@ class ProductImage(db.Model):
     filename = db.Column(db.String(300), nullable=False)
     sort_order = db.Column(db.Integer, default=0)
 
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(200), nullable=False)
+    customer_phone = db.Column(db.String(50), nullable=False)
+    customer_address = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(30), default='pending')  # pending, confirmed, shipped, completed, cancelled
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    items = db.relationship('OrderItem', backref='order', cascade='all, delete-orphan')
+
+    @property
+    def total(self):
+        return sum(item.price * item.quantity for item in self.items)
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)
+    product_name = db.Column(db.String(200), nullable=False)  # snapshot, survives product deletion
+    price = db.Column(db.Float, nullable=False)  # snapshot at order time
+    quantity = db.Column(db.Integer, default=1)
+
 # --------------------- THEME PRESETS ---------------------
 THEMES = {
     'rose': {
         'label': 'Rose Blush (default)',
         'primary': '#d81b60', 'primary_dark': '#880e4f', 'accent': '#f8bbd0',
         'bg_start': '#fce4ec', 'bg_end': '#f8bbd0',
+        'text': '#333333', 'text_muted': '#666666', 'card_bg': 'rgba(255,255,255,0.9)',
     },
     'midnight': {
         'label': 'Midnight Gold',
         'primary': '#d4af37', 'primary_dark': '#8a6d1a', 'accent': '#2c2c3a',
         'bg_start': '#161622', 'bg_end': '#2c2c3a',
+        'text': '#f0e9d8', 'text_muted': '#b9b3a3', 'card_bg': 'rgba(35,35,48,0.9)',
     },
     'emerald': {
         'label': 'Emerald Luxe',
         'primary': '#0f9d58', 'primary_dark': '#0b6e3d', 'accent': '#d0f0e0',
         'bg_start': '#e6f7ee', 'bg_end': '#c8ecd9',
+        'text': '#1e3a2b', 'text_muted': '#4a6455', 'card_bg': 'rgba(255,255,255,0.9)',
     },
     'ocean': {
         'label': 'Ocean Breeze',
         'primary': '#0288d1', 'primary_dark': '#01579b', 'accent': '#b3e5fc',
         'bg_start': '#e1f5fe', 'bg_end': '#b3e5fc',
+        'text': '#0d2b3a', 'text_muted': '#3f6273', 'card_bg': 'rgba(255,255,255,0.9)',
     },
     'sunset': {
         'label': 'Sunset Amber',
         'primary': '#e65100', 'primary_dark': '#a13a00', 'accent': '#ffe0b2',
         'bg_start': '#fff3e0', 'bg_end': '#ffe0b2',
+        'text': '#3a2314', 'text_muted': '#6b5140', 'card_bg': 'rgba(255,255,255,0.9)',
     },
 }
 DEFAULT_THEME = 'rose'
@@ -101,11 +127,13 @@ app.jinja_env.filters['naira'] = format_naira
 def inject_config():
     site_name = Config.query.filter_by(key='site_name').first()
     logo = Config.query.filter_by(key='logo_filename').first()
+    hero_title = Config.query.filter_by(key='hero_title').first()
     theme_key = Config.query.filter_by(key='theme').first()
     theme_key = theme_key.value if theme_key and theme_key.value in THEMES else DEFAULT_THEME
     return {
         'site_name': site_name.value if site_name else 'Bellesence',
         'logo_filename': logo.value if logo else None,
+        'hero_title': hero_title.value if hero_title and hero_title.value else 'Our Perfumes',
         'theme': THEMES[theme_key],
         'theme_key': theme_key,
         'themes_all': THEMES,
@@ -131,6 +159,31 @@ def index():
 def product_detail(id):
     product = Product.query.get_or_404(id)
     return render_template('product.html', product=product)
+
+@app.route('/product/<int:id>/order', methods=['POST'])
+def place_order(id):
+    product = Product.query.get_or_404(id)
+    customer_name = request.form.get('customer_name', '').strip()
+    customer_phone = request.form.get('customer_phone', '').strip()
+    customer_address = request.form.get('customer_address', '').strip()
+    try:
+        quantity = max(1, int(request.form.get('quantity', 1)))
+    except (TypeError, ValueError):
+        quantity = 1
+
+    if not customer_name or not customer_phone:
+        flash('Please provide your name and phone number to place an order.', 'danger')
+        return redirect(url_for('product_detail', id=id))
+
+    order = Order(customer_name=customer_name, customer_phone=customer_phone,
+                  customer_address=customer_address, status='pending')
+    db.session.add(order)
+    db.session.flush()
+    db.session.add(OrderItem(order_id=order.id, product_id=product.id,
+                              product_name=product.name, price=product.price, quantity=quantity))
+    db.session.commit()
+    flash('Your order has been placed! We will contact you shortly to confirm.', 'success')
+    return redirect(url_for('product_detail', id=id))
 
 # --------------------- ROUTES – ADMIN AUTH ---------------------
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -160,7 +213,7 @@ def admin_dashboard():
 @admin_required
 def admin_config():
     if request.method == 'POST':
-        fields = ['site_name', 'tagline', 'contact_phone', 'contact_email',
+        fields = ['site_name', 'tagline', 'hero_title', 'contact_phone', 'contact_email',
                    'address', 'whatsapp', 'instagram', 'facebook', 'footer_note']
         for field in fields:
             val = request.form.get(field, '').strip()
@@ -195,6 +248,7 @@ def admin_config():
     return render_template('admin/config.html',
                            current_site_name=cfg('site_name', 'Bellesence'),
                            current_tagline=cfg('tagline'),
+                           current_hero_title=cfg('hero_title', 'Our Perfumes'),
                            current_contact_phone=cfg('contact_phone'),
                            current_contact_email=cfg('contact_email'),
                            current_address=cfg('address'),
@@ -205,6 +259,34 @@ def admin_config():
                            current_theme=theme_key,
                            current_logo=cfg('logo_filename') or None,
                            themes=THEMES)
+
+# Order management
+@app.route('/admin/orders')
+@admin_required
+def admin_orders():
+    orders = Order.query.order_by(Order.created_at.desc()).all()
+    return render_template('admin/orders.html', orders=orders)
+
+@app.route('/admin/orders/<int:id>/status', methods=['POST'])
+@admin_required
+def update_order_status(id):
+    order = Order.query.get_or_404(id)
+    status = request.form.get('status', 'pending')
+    valid_statuses = ['pending', 'confirmed', 'shipped', 'completed', 'cancelled']
+    if status in valid_statuses:
+        order.status = status
+        db.session.commit()
+        flash('Order status updated.', 'success')
+    return redirect(url_for('admin_orders'))
+
+@app.route('/admin/orders/<int:id>/delete')
+@admin_required
+def delete_order(id):
+    order = Order.query.get_or_404(id)
+    db.session.delete(order)
+    db.session.commit()
+    flash('Order deleted.', 'success')
+    return redirect(url_for('admin_orders'))
 
 # Product management
 @app.route('/admin/products')
