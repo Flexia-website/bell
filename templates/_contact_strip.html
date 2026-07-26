@@ -1,0 +1,43 @@
+{% if current_contact_phone or current_contact_email or current_address or current_whatsapp or current_instagram or current_facebook %}
+<div class="contact-strip">
+    <h3 class="contact-strip-title">Contact Us</h3>
+    <div class="contact-strip-grid">
+        {% if current_contact_phone %}
+        <a href="tel:{{ current_contact_phone }}" class="contact-item">
+            <span class="contact-label">Phone</span>
+            <span class="contact-value">{{ current_contact_phone }}</span>
+        </a>
+        {% endif %}
+        {% if current_whatsapp %}
+        <a href="https://wa.me/{{ current_whatsapp }}" class="contact-item" target="_blank" rel="noopener">
+            <span class="contact-label">WhatsApp</span>
+            <span class="contact-value">Chat with us</span>
+        </a>
+        {% endif %}
+        {% if current_contact_email %}
+        <a href="mailto:{{ current_contact_email }}" class="contact-item">
+            <span class="contact-label">Email</span>
+            <span class="contact-value">{{ current_contact_email }}</span>
+        </a>
+        {% endif %}
+        {% if current_address %}
+        <div class="contact-item">
+            <span class="contact-label">Address</span>
+            <span class="contact-value">{{ current_address }}</span>
+        </div>
+        {% endif %}
+        {% if current_instagram %}
+        <a href="{{ current_instagram }}" class="contact-item" target="_blank" rel="noopener">
+            <span class="contact-label">Instagram</span>
+            <span class="contact-value">Follow us</span>
+        </a>
+        {% endif %}
+        {% if current_facebook %}
+        <a href="{{ current_facebook }}" class="contact-item" target="_blank" rel="noopener">
+            <span class="contact-label">Facebook</span>
+            <span class="contact-value">Follow us</span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
