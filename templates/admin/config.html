@@ -25,7 +25,7 @@
                     <label class="form-label">Logo Image</label>
                     <input type="file" name="logo" class="form-control" accept="image/*">
                     {% if current_logo %}
-                    <small class="d-block mt-2">Current: <img src="{{ url_for('static', filename='uploads/' + current_logo) }}" height="36" style="border-radius:6px;"></small>
+                    <small class="d-block mt-2">Current: <img src="{{ url_for('static', filename='uploads/' + current_logo) }}" height="36" width="36" style="border-radius:50%; object-fit:cover;"></small>
                     {% endif %}
                 </div>
             </div>
