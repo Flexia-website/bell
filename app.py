@@ -37,16 +37,79 @@ class Product(db.Model):
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    image_filename = db.Column(db.String(300), nullable=True)
+    image_filename = db.Column(db.String(300), nullable=True)  # cover image (backward compatible)
+    images = db.relationship('ProductImage', backref='product', cascade='all, delete-orphan',
+                              order_by='ProductImage.sort_order')
+
+    @property
+    def all_images(self):
+        result = []
+        if self.image_filename:
+            result.append(self.image_filename)
+        for img in self.images:
+            if img.filename not in result:
+                result.append(img.filename)
+        return result
+
+class ProductImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    filename = db.Column(db.String(300), nullable=False)
+    sort_order = db.Column(db.Integer, default=0)
+
+# --------------------- THEME PRESETS ---------------------
+THEMES = {
+    'rose': {
+        'label': 'Rose Blush (default)',
+        'primary': '#d81b60', 'primary_dark': '#880e4f', 'accent': '#f8bbd0',
+        'bg_start': '#fce4ec', 'bg_end': '#f8bbd0',
+    },
+    'midnight': {
+        'label': 'Midnight Gold',
+        'primary': '#d4af37', 'primary_dark': '#8a6d1a', 'accent': '#2c2c3a',
+        'bg_start': '#161622', 'bg_end': '#2c2c3a',
+    },
+    'emerald': {
+        'label': 'Emerald Luxe',
+        'primary': '#0f9d58', 'primary_dark': '#0b6e3d', 'accent': '#d0f0e0',
+        'bg_start': '#e6f7ee', 'bg_end': '#c8ecd9',
+    },
+    'ocean': {
+        'label': 'Ocean Breeze',
+        'primary': '#0288d1', 'primary_dark': '#01579b', 'accent': '#b3e5fc',
+        'bg_start': '#e1f5fe', 'bg_end': '#b3e5fc',
+    },
+    'sunset': {
+        'label': 'Sunset Amber',
+        'primary': '#e65100', 'primary_dark': '#a13a00', 'accent': '#ffe0b2',
+        'bg_start': '#fff3e0', 'bg_end': '#ffe0b2',
+    },
+}
+DEFAULT_THEME = 'rose'
+CURRENCY_SYMBOL = '₦'
+
+def format_naira(value):
+    try:
+        return '₦{:,.2f}'.format(float(value))
+    except (TypeError, ValueError):
+        return '₦0.00'
+
+app.jinja_env.filters['naira'] = format_naira
 
 # --------------------- CONTEXT PROCESSOR ---------------------
 @app.context_processor
 def inject_config():
     site_name = Config.query.filter_by(key='site_name').first()
     logo = Config.query.filter_by(key='logo_filename').first()
+    theme_key = Config.query.filter_by(key='theme').first()
+    theme_key = theme_key.value if theme_key and theme_key.value in THEMES else DEFAULT_THEME
     return {
         'site_name': site_name.value if site_name else 'Bellesence',
-        'logo_filename': logo.value if logo else None
+        'logo_filename': logo.value if logo else None,
+        'theme': THEMES[theme_key],
+        'theme_key': theme_key,
+        'themes_all': THEMES,
+        'currency': CURRENCY_SYMBOL
     }
 
 # --------------------- DECORATORS ---------------------
@@ -97,9 +160,18 @@ def admin_dashboard():
 @admin_required
 def admin_config():
     if request.method == 'POST':
-        site_name = request.form.get('site_name', '').strip()
-        Config.query.filter_by(key='site_name').delete()
-        db.session.add(Config(key='site_name', value=site_name))
+        fields = ['site_name', 'tagline', 'contact_phone', 'contact_email',
+                   'address', 'whatsapp', 'instagram', 'facebook', 'footer_note']
+        for field in fields:
+            val = request.form.get(field, '').strip()
+            Config.query.filter_by(key=field).delete()
+            db.session.add(Config(key=field, value=val))
+
+        theme_choice = request.form.get('theme', DEFAULT_THEME)
+        if theme_choice not in THEMES:
+            theme_choice = DEFAULT_THEME
+        Config.query.filter_by(key='theme').delete()
+        db.session.add(Config(key='theme', value=theme_choice))
 
         logo_file = request.files.get('logo')
         if logo_file and logo_file.filename != '':
@@ -112,11 +184,27 @@ def admin_config():
         flash('Configuration updated.', 'success')
         return redirect(url_for('admin_config'))
 
-    site_name = Config.query.filter_by(key='site_name').first()
-    logo = Config.query.filter_by(key='logo_filename').first()
+    def cfg(key, default=''):
+        row = Config.query.filter_by(key=key).first()
+        return row.value if row and row.value else default
+
+    theme_key = cfg('theme', DEFAULT_THEME)
+    if theme_key not in THEMES:
+        theme_key = DEFAULT_THEME
+
     return render_template('admin/config.html',
-                           current_site_name=site_name.value if site_name else 'Bellesence',
-                           current_logo=logo.value if logo else None)
+                           current_site_name=cfg('site_name', 'Bellesence'),
+                           current_tagline=cfg('tagline'),
+                           current_contact_phone=cfg('contact_phone'),
+                           current_contact_email=cfg('contact_email'),
+                           current_address=cfg('address'),
+                           current_whatsapp=cfg('whatsapp'),
+                           current_instagram=cfg('instagram'),
+                           current_facebook=cfg('facebook'),
+                           current_footer_note=cfg('footer_note'),
+                           current_theme=theme_key,
+                           current_logo=cfg('logo_filename') or None,
+                           themes=THEMES)
 
 # Product management
 @app.route('/admin/products')
@@ -125,6 +213,17 @@ def admin_products():
     products = Product.query.all()
     return render_template('admin/products.html', products=products)
 
+def _save_upload(file_storage):
+    filename = secure_filename(file_storage.filename)
+    base, ext = os.path.splitext(filename)
+    candidate = filename
+    i = 1
+    while os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], candidate)):
+        candidate = f"{base}-{i}{ext}"
+        i += 1
+    file_storage.save(os.path.join(app.config['UPLOAD_FOLDER'], candidate))
+    return candidate
+
 @app.route('/admin/products/add', methods=['GET', 'POST'])
 @admin_required
 def add_product():
@@ -132,14 +231,22 @@ def add_product():
         name = request.form['name']
         description = request.form['description']
         price = float(request.form['price'])
-        image_file = request.files.get('image')
-        filename = None
-        if image_file and image_file.filename != '':
-            filename = secure_filename(image_file.filename)
-            image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        product = Product(name=name, description=description, price=price, image_filename=filename)
+        images = request.files.getlist('images')
+        saved_filenames = []
+        for image_file in images:
+            if image_file and image_file.filename != '':
+                saved_filenames.append(_save_upload(image_file))
+
+        cover = saved_filenames[0] if saved_filenames else None
+
+        product = Product(name=name, description=description, price=price, image_filename=cover)
         db.session.add(product)
+        db.session.flush()
+
+        for idx, fn in enumerate(saved_filenames):
+            db.session.add(ProductImage(product_id=product.id, filename=fn, sort_order=idx))
+
         db.session.commit()
         flash('Product added!', 'success')
         return redirect(url_for('admin_products'))
@@ -154,16 +261,59 @@ def edit_product(id):
         product.name = request.form['name']
         product.description = request.form['description']
         product.price = float(request.form['price'])
-        image_file = request.files.get('image')
-        if image_file and image_file.filename != '':
-            filename = secure_filename(image_file.filename)
-            image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            product.image_filename = filename
+
+        images = request.files.getlist('images')
+        new_filenames = []
+        for image_file in images:
+            if image_file and image_file.filename != '':
+                new_filenames.append(_save_upload(image_file))
+
+        if new_filenames:
+            start_order = len(product.images)
+            for idx, fn in enumerate(new_filenames):
+                db.session.add(ProductImage(product_id=product.id, filename=fn, sort_order=start_order + idx))
+            if not product.image_filename:
+                product.image_filename = new_filenames[0]
+
         db.session.commit()
         flash('Product updated.', 'success')
         return redirect(url_for('admin_products'))
 
     return render_template('admin/edit_product.html', product=product)
+
+@app.route('/admin/products/<int:product_id>/images/<int:image_id>/delete')
+@admin_required
+def delete_product_image(product_id, image_id):
+    product = Product.query.get_or_404(product_id)
+    img = ProductImage.query.get_or_404(image_id)
+    if img.product_id != product.id:
+        flash('Image does not belong to this product.', 'danger')
+        return redirect(url_for('edit_product', id=product_id))
+
+    was_cover = (product.image_filename == img.filename)
+    db.session.delete(img)
+    db.session.flush()
+
+    if was_cover:
+        remaining = ProductImage.query.filter_by(product_id=product.id).order_by(ProductImage.sort_order).first()
+        product.image_filename = remaining.filename if remaining else None
+
+    db.session.commit()
+    flash('Image removed.', 'success')
+    return redirect(url_for('edit_product', id=product_id))
+
+@app.route('/admin/products/<int:product_id>/images/<int:image_id>/make-cover')
+@admin_required
+def make_cover_image(product_id, image_id):
+    product = Product.query.get_or_404(product_id)
+    img = ProductImage.query.get_or_404(image_id)
+    if img.product_id != product.id:
+        flash('Image does not belong to this product.', 'danger')
+        return redirect(url_for('edit_product', id=product_id))
+    product.image_filename = img.filename
+    db.session.commit()
+    flash('Cover image updated.', 'success')
+    return redirect(url_for('edit_product', id=product_id))
 
 @app.route('/admin/products/delete/<int:id>')
 @admin_required
