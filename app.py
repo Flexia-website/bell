@@ -125,15 +125,26 @@ app.jinja_env.filters['naira'] = format_naira
 # --------------------- CONTEXT PROCESSOR ---------------------
 @app.context_processor
 def inject_config():
-    site_name = Config.query.filter_by(key='site_name').first()
-    logo = Config.query.filter_by(key='logo_filename').first()
-    hero_title = Config.query.filter_by(key='hero_title').first()
-    theme_key = Config.query.filter_by(key='theme').first()
-    theme_key = theme_key.value if theme_key and theme_key.value in THEMES else DEFAULT_THEME
+    def cfg(key, default=''):
+        row = Config.query.filter_by(key=key).first()
+        return row.value if row and row.value else default
+
+    theme_key = cfg('theme', DEFAULT_THEME)
+    if theme_key not in THEMES:
+        theme_key = DEFAULT_THEME
+
     return {
-        'site_name': site_name.value if site_name else 'Bellesence',
-        'logo_filename': logo.value if logo else None,
-        'hero_title': hero_title.value if hero_title and hero_title.value else 'Our Perfumes',
+        'site_name': cfg('site_name', 'Bellesence'),
+        'logo_filename': cfg('logo_filename') or None,
+        'hero_title': cfg('hero_title', 'Our Perfumes'),
+        'tagline': cfg('tagline'),
+        'current_contact_phone': cfg('contact_phone'),
+        'current_contact_email': cfg('contact_email'),
+        'current_address': cfg('address'),
+        'current_whatsapp': cfg('whatsapp'),
+        'current_instagram': cfg('instagram'),
+        'current_facebook': cfg('facebook'),
+        'current_footer_note': cfg('footer_note'),
         'theme': THEMES[theme_key],
         'theme_key': theme_key,
         'themes_all': THEMES,
