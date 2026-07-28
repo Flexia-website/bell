@@ -3,8 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from functools import wraps
-from PIL import Image, ImageOps
-import io
 
 app = Flask(__name__)
 
@@ -307,63 +305,19 @@ def admin_products():
     products = Product.query.all()
     return render_template('admin/products.html', products=products)
 
-def _unique_filename(base, ext):
-    candidate = f"{base}{ext}"
+def _save_upload(file_storage, max_dimension=1200, quality=82):
+    filename = secure_filename(file_storage.filename)
+    base, ext = os.path.splitext(filename)
+    candidate = filename
     i = 1
     while os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], candidate)):
         candidate = f"{base}-{i}{ext}"
         i += 1
+    file_storage.save(os.path.join(app.config['UPLOAD_FOLDER'], candidate))
     return candidate
 
-def _save_upload(file_storage, max_dimension=1200, quality=82):
-    """
-    Resize and compress an uploaded image before saving it to disk.
-    This is the main fix for slow uploads/page loads: raw phone-camera
-    photos (often 3-8MB) get shrunk to a sensible web size (~100-300KB)
-    before they ever touch storage or a customer's browser.
-    Falls back to saving the original file untouched if Pillow can't
-    process it (e.g. an unsupported format).
-    """
-    original_name = secure_filename(file_storage.filename)
-    base, ext = os.path.splitext(original_name)
-    base = base or 'image'
-
-    try:
-        img = Image.open(file_storage.stream)
-        img = ImageOps.exif_transpose(img)  # respect phone camera orientation
-
-        # Downscale only if larger than max_dimension on the long edge
-        img.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
-
-        # Flatten transparency onto white and standardize on JPEG for photos;
-        # keep PNG for images that actually need transparency (e.g. logos with alpha)
-        has_alpha = img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info)
-        if has_alpha:
-            out_ext = '.png'
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
-            save_kwargs = {'optimize': True}
-        else:
-            out_ext = '.jpg'
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            save_kwargs = {'quality': quality, 'optimize': True}
-
-        filename = _unique_filename(base, out_ext)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        img.save(filepath, **save_kwargs)
-        return filename
-
-    except Exception:
-        # Not a recognizable image (or Pillow failed) — save the original as-is
-        file_storage.stream.seek(0)
-        filename = _unique_filename(base, ext or '.bin')
-        file_storage.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return filename
-
 def _save_logo_upload(file_storage):
-    """Logos render small (a 28-40px circle), so cap them tighter than product photos."""
-    return _save_upload(file_storage, max_dimension=400, quality=85)
+    return _save_upload(file_storage)
 
 @app.route('/admin/products/add', methods=['GET', 'POST'])
 @admin_required
